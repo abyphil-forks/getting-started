@@ -52,5 +52,49 @@ cd C:\home\kafka\kafka_2.13-3.0.0\bin\windows\
 ```
 This will open the producer and consumer consoles. Anything typed in the producer console would be received in the consumer console too.
 
+# Setting up tap-github
+
+* Reference [https://github.com/singer-io/tap-github](tap-github)
+* Install, python3-virtualenv, create a virtual environment and install tap-github via pip
+```
+ sudo apt install python3-virtualenv
+ virtualenv -p python venv
+ source venv/bin/activate
+ pip install tap-github
+```
+
+* Login to github > Settings > Developer Settings > Personal Access Tokens. Generate a new access token.
+* Create a _config.json_ as specified. 
+  * Update _"access_token"_ with the one generated in previous step
+  * Update _"repository"_ with the one you need to read from
+  * Update _"start_date"_ to the time from which you need to read updates from
+```
+{"access_token": "your-access-token",
+ "repository": "abyphil/scratch",
+ "start_date": "2021-01-01T00:00:00Z",
+ "request_timeout": 300
+}
+```
+
+* Run _tap-github_ in discover mode to generate properties.json
+```
+tap-github --config config.json --discover > properties.json
+```
+* Edit the _properties.json_ to add _"selected": true_ to any streams you are interested. 
+* Now run the command to fetch the stream
+```
+tap-github --config config.json --properties properties.json
+```
+* This should print a list of json records that show all changes in the stream, for _repository_, since _start_date_.
+
+# TODOs
+* Get a singer tap running
+* Get a singer target running
 
 # Ideas
+* Create a java adapter that can read from any singer tap
+* Add an iterator interface for the adapter. Records read off the stdout, can in turn be read from the iterator.
+* Create a java based SDK for singer taps
+* Singer tap can be ran from command line to examine the content. Instead of command line, may be create a Repl. 
+  * Load the tap
+  * Examine the configuration, state etc. 
